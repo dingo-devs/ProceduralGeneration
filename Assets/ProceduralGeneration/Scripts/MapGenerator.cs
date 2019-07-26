@@ -19,16 +19,16 @@ public class MapGenerator : MonoBehaviour
         {
             for (float width = 0; width < NoiseMap.Width; width++)
             {
-                float x = (depth / NoiseMap.Depth) + NoiseMap.Seed / 10000.0f;
-                float y = (width / NoiseMap.Width) + NoiseMap.Seed / 10000.0f;
+                float x = (depth / (NoiseMap.Depth + 1)) + NoiseMap.Seed / long.MaxValue;
+                float y = (width / (NoiseMap.Width + 1)) + NoiseMap.Seed / long.MaxValue;
                 noise = Mathf.PerlinNoise(x ,y);
                 if (noise < 0.3f)
                 {
-                    Instantiate(NoiseMap.TileObject, new Vector3(width, 0.4f, depth), Quaternion.identity, this.transform);
+                    Instantiate(NoiseMap.TileObject, new Vector3(width - NoiseMap.Width / 2, 0.4f, depth - NoiseMap.Depth / 2), Quaternion.identity, this.transform);
                 }
                 else
                 {
-                    Instantiate(NoiseMap.GroundObject, new Vector3(width, 0, depth), Quaternion.identity, this.transform);
+                    Instantiate(NoiseMap.GroundObject, new Vector3(width - NoiseMap.Width / 2, 0, depth - NoiseMap.Depth / 2), Quaternion.identity, this.transform);
                 }
             }
         }
