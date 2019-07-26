@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63eab4f7dd94eb246b785d4958fd806e, type: 3}
   m_Name: default
   m_EditorClassIdentifier: 
-  Width: 30
-  Depth: 30
+  Width: 50
+  Depth: 50
+  Scale: 1
   GroundObject: {fileID: 122515461087402457, guid: 6475038674c237f43ae49a89085fc643,
     type: 3}
   TileObject: {fileID: 1282836899264965183, guid: a4630f18e5ce070478b5178ad4681a35,

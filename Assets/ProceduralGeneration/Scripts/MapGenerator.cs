@@ -5,32 +5,66 @@ using UnityEngine;
 public class MapGenerator : MonoBehaviour
 {
     public NoiseMap NoiseMap;
+    public GameObject MapParent;
 
-    // Start is called before the first frame update
-    void Start()
+    void Update()
     {
-        GenerateMap();
+        int mapWidth = 0, mapDepth = 0;
+        float scale = 0.0f;
+
+        if (Input.GetKeyUp(KeyCode.G))
+        {
+            mapWidth = NoiseMap.Width;
+            mapDepth = NoiseMap.Depth;
+            scale = NoiseMap.Scale;
+        }
+
+        if (Input.GetKeyUp(KeyCode.R))
+        {
+            mapWidth = Random.Range(25, 50);
+            mapDepth = Random.Range(25, 50);
+            scale = Random.Range(0.5f, 4.0f);
+        }
+
+        if (mapWidth > 0 && mapDepth > 0)
+            GenerateMap(mapWidth, mapDepth, scale);
     }
 
-    void GenerateMap()
+    void GenerateMap(int mapWidth, int mapDepth, float scale)
     {
-        float noise = 0;
-        for (float depth = 0; depth < NoiseMap.Depth; depth++)
+        float result, px, pz;
+        float origin_x = mapWidth / 2;
+        float origin_z = mapDepth / 2;
+
+        ClearMap();
+
+        Debug.Log($"[{mapWidth} X {mapDepth}] * {scale}");
+
+        for (float z = 0; z < mapDepth; z++)
         {
-            for (float width = 0; width < NoiseMap.Width; width++)
+            for (float x = 0; x < mapWidth; x++)
             {
-                float x = (depth / (NoiseMap.Depth + 1)) + NoiseMap.Seed / long.MaxValue;
-                float y = (width / (NoiseMap.Width + 1)) + NoiseMap.Seed / long.MaxValue;
-                noise = Mathf.PerlinNoise(x ,y);
-                if (noise < 0.3f)
+                px = (z / (z + mapDepth * scale));
+                pz = (x / (x + mapWidth * scale));
+                result = Mathf.PerlinNoise(px, pz);
+                if ((int)(result * 100.0 * scale) % 2 == 0)
                 {
-                    Instantiate(NoiseMap.TileObject, new Vector3(width - NoiseMap.Width / 2, 0.4f, depth - NoiseMap.Depth / 2), Quaternion.identity, this.transform);
+                    Instantiate(NoiseMap.TileObject, new Vector3(x - origin_x, 0.5f, z - origin_z), Quaternion.identity, MapParent.transform);
                 }
                 else
                 {
-                    Instantiate(NoiseMap.GroundObject, new Vector3(width - NoiseMap.Width / 2, 0, depth - NoiseMap.Depth / 2), Quaternion.identity, this.transform);
+                    Instantiate(NoiseMap.GroundObject, new Vector3(x - origin_x, 0, z - origin_z), Quaternion.identity, MapParent.transform);
                 }
             }
+        }
+    }
+
+    void ClearMap()
+    {
+        int childs = MapParent.transform.childCount;
+        for (int i = childs - 1; i >= 0; i--)
+        {
+            Destroy(MapParent.transform.GetChild(i).gameObject);
         }
     }
 }
