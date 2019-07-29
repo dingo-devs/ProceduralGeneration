@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.ProceduralGeneration.Scripts;
 
 public class MapGenerator : MonoBehaviour
 {
     public MapGeneratorSettings mapGeneratorSettings;
     public GameObject mapParent;
-    public Vector2 origin;
+    private Vector2 origin;
 
     void Start()
     {
@@ -39,8 +40,19 @@ public class MapGenerator : MonoBehaviour
         float px, pz;
         float origin_x = mapWidth / 2;
         float origin_z = mapDepth / 2;
+        int[,] map = new int[mapGeneratorSettings.Width, mapGeneratorSettings.Depth];
 
         ClearMap();
+
+        for (int z = 0; z < mapDepth; z++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                map[x, z] = -1;
+            }
+        }
+
+        RandomWalkRoad(map);
 
         for (float z = 0; z < mapDepth; z++)
         {
@@ -64,8 +76,48 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
+    
+    void RandomWalkRoad(int[,] map)
+    {
+        int width = map.GetLength(0);
+        int depth = map.GetLength(1);
+        if (width < 4 || depth < 4)
+            throw new System.Exception("Invalid map size (should be atleast 4x4)");
+        
+        int x = Random.Range(1, width - 2);
+        int y = Random.Range(1, depth - 2);
+        RoadDirection prevDirection = RoadDirection.Up;
+        RoadDirection currentDirection = RoadDirection.Up;
+        
 
-    void RandomWalkRoad()
+        int maxRoads = Mathf.Min(mapGeneratorSettings.MaximumRoads, map.Length - map.GetLength(0));
+
+        for (int i = 0; i < maxRoads; ++i)
+        {
+            // Calculate next direction
+            prevDirection = currentDirection;
+
+            float probUp, probDown, probLeft, probRight;
+            // Check nearby walls
+            // Up
+            probUp = (y - 1 > 0 && currentDirection != RoadDirection.Down) ? 0.25f : 0.0f;
+            // Down
+            probDown = (y + 1 < depth - 1 && currentDirection != RoadDirection.Up) ? 0.25f : 0.0f;
+            // Left
+            probLeft = (x - 1 > 0 && currentDirection != RoadDirection.Right) ? 0.25f : 0.0f;
+            // Right
+            probRight = (x + 1 < depth - 1 && currentDirection != RoadDirection.Left) ? 0.25f : 0.0f;
+
+            RoadDirectionProbability state = new RoadDirectionProbability(probUp, probLeft, probRight, probDown);
+            // Calculate new direction using current state
+            currentDirection = state.GetNext();
+
+            // Move in that direction, pay attention to prev direction for turns and shit
+
+        }
+    }
+
+    private void IsWall(int x, int z)
     {
 
     }
