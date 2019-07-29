@@ -4,67 +4,83 @@ using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public NoiseMap NoiseMap;
-    public GameObject MapParent;
+    public MapGeneratorSettings mapGeneratorSettings;
+    public GameObject mapParent;
+    public Vector2 origin;
+
+    void Start()
+    {
+        origin = new Vector2(mapGeneratorSettings.Width / 2f, mapGeneratorSettings.Depth / 2f);
+    }
 
     void Update()
     {
         int mapWidth = 0, mapDepth = 0;
-        float scale = 0.0f;
 
         if (Input.GetKeyUp(KeyCode.G))
         {
-            mapWidth = NoiseMap.Width;
-            mapDepth = NoiseMap.Depth;
-            scale = NoiseMap.Scale;
+            mapWidth = mapGeneratorSettings.Width;
+            mapDepth = mapGeneratorSettings.Depth;
         }
 
         if (Input.GetKeyUp(KeyCode.R))
         {
             mapWidth = Random.Range(25, 50);
             mapDepth = Random.Range(25, 50);
-            scale = Random.Range(0.5f, 4.0f);
         }
 
         if (mapWidth > 0 && mapDepth > 0)
-            GenerateMap(mapWidth, mapDepth, scale);
+            GenerateMap(mapWidth, mapDepth);
     }
 
-    void GenerateMap(int mapWidth, int mapDepth, float scale)
+    void GenerateMap(int mapWidth, int mapDepth)
     {
-        float result, px, pz;
+        int result;
+        float px, pz;
         float origin_x = mapWidth / 2;
         float origin_z = mapDepth / 2;
 
         ClearMap();
 
-        Debug.Log($"[{mapWidth} X {mapDepth}] * {scale}");
-
         for (float z = 0; z < mapDepth; z++)
         {
             for (float x = 0; x < mapWidth; x++)
             {
-                px = (z / (z + mapDepth * scale));
-                pz = (x / (x + mapWidth * scale));
-                result = Mathf.PerlinNoise(px, pz);
-                if ((int)(result * 100.0 * scale) % 2 == 0)
+                px = (z / (z + mapDepth));
+                pz = (x / (x + mapWidth));
+                result = (int)(Mathf.PerlinNoise(px, pz) * 100.0);
+                switch (result % 3)
                 {
-                    Instantiate(NoiseMap.TileObject, new Vector3(x - origin_x, 0.5f, z - origin_z), Quaternion.identity, MapParent.transform);
-                }
-                else
-                {
-                    Instantiate(NoiseMap.GroundObject, new Vector3(x - origin_x, 0, z - origin_z), Quaternion.identity, MapParent.transform);
+                    case 0:
+                        PutObject(mapGeneratorSettings.BuildingObject, new Vector2(x, z));
+                        break;
+                    case 1:
+                        PutObject(mapGeneratorSettings.GroundObject, new Vector2(x, z));
+                        break;
+                    default:
+                        // PutObject(mapGeneratorSettings.RoadObject, new Vector2(x, z));
+                        break;
                 }
             }
         }
     }
 
+    void RandomWalkRoad()
+    {
+
+    }
+
+    void PutObject(GameObject gameObject, Vector2 position)
+    {
+        Instantiate(gameObject, new Vector3(position.x, 0, position.y), Quaternion.identity, mapParent.transform);
+    }
+
     void ClearMap()
     {
-        int childs = MapParent.transform.childCount;
+        int childs = mapParent.transform.childCount;
         for (int i = childs - 1; i >= 0; i--)
         {
-            Destroy(MapParent.transform.GetChild(i).gameObject);
+            Destroy(mapParent.transform.GetChild(i).gameObject);
         }
     }
 }
